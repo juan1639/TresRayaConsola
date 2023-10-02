@@ -4,6 +4,10 @@ import java.util.Scanner;
 
 public class Tablero {
 	
+	public static final char casilla_vacia = 95; // Codigo ASCii   "_"
+	public static final char casilla_fichaX = 120; // Codigo ASCii "X"
+	public static final char casilla_fichaO = 111; // Codigo ASCii "O"
+	
 	static int cGanadoras[][] = {
 			{0, 1, 2},
 			{3, 4, 5},
@@ -19,6 +23,7 @@ public class Tablero {
 	CasillaX_O[] arrayBoard = new CasillaX_O[numeroCasillas];
 	
 	private int contador_jugadas = 0;
+	private static String ganador;
 	private boolean turno = true;
 	
 	// CONSTRUCTOR ------------------------------------------------
@@ -27,8 +32,9 @@ public class Tablero {
 		this.contador_jugadas = contador_jugadas;
 		this.turno = turno;
 		
+		// Instanciamos las 9 casillas (vacias por defecto) -----
 		for (int i = 0; i < numeroCasillas; i ++) {
-			arrayBoard[i] = new CasillaX_O(i);
+			arrayBoard[i] = new CasillaX_O(casilla_vacia, i, false);
 			// System.out.print(" " + arrayBoard[i].getValor());
 		}
 		
@@ -40,37 +46,29 @@ public class Tablero {
 		
 		Scanner sc = new Scanner(System.in);
 		boolean tresRaya = false;
+		boolean empate = false;
 		
 		do {
 			contador_jugadas ++;
 			String quienJuega = (turno) ? " X (Jugador)" : "  O (CPU)";
 			
-			for (int i = 0; i < numeroCasillas; i ++) {
-				
-				if (i == 2) {
-					System.out.print("   " + arrayBoard[i].getValor() + "   Turno:" + quienJuega);
-					System.out.println("\n");
-					
-				} else if (i == 5) {
-					System.out.print("   " + arrayBoard[i].getValor());
-					System.out.println("\n");
-					
-				} else {
-					System.out.print("   " + arrayBoard[i].getValor());
-				}
-			}
+			imprime_areaDeJuego(quienJuega);
 			
 			tresRaya = jugar(turno, sc, contador_jugadas, arrayBoard);
 			
-			if (contador_jugadas < 9) {
-				System.out.println("\n\n\n");
-			}
-			
+			System.out.println("\n\n\n");
 			turno = (turno) ? false : true;
 			
-		} while (contador_jugadas < 9 && !tresRaya);
+			empate = check_siHayEmpate(arrayBoard);
+			
+		} while (!tresRaya && !empate);
 		
-		System.out.println("Juego Terminado");
+		if (!tresRaya) {
+			imprime_areaDeJuego("  EMPATE!");
+			
+		} else {
+			imprime_areaDeJuego("  3 en RAYA!  " + ganador);
+		}
 	}
 	
 	// -------------------------------------------------------------------------
@@ -80,10 +78,6 @@ public class Tablero {
 		double rnd;
 		int tirada_cpu;
 		int tirada_jugador;
-		
-		char casilla_vacia = CasillaX_O.getCasillaVacia();
-		char casilla_fichaX = CasillaX_O.getCasillaFichax();
-		char casilla_fichaO = CasillaX_O.getCasillaFichao();
 		
 		if (!turno) {
 			
@@ -97,6 +91,7 @@ public class Tablero {
 			arrayBoard[tirada_cpu].setValor(casilla_fichaO);
 			arrayBoard[tirada_cpu].setOcupada(true);
 			tresRaya = check_siHayGanador(casilla_fichaO, arrayBoard);
+			ganador = "Gana la CPU!";
 			
 		} else {
 			
@@ -108,9 +103,29 @@ public class Tablero {
 			arrayBoard[tirada_jugador].setValor(casilla_fichaX);
 			arrayBoard[tirada_jugador].setOcupada(true);
 			tresRaya = check_siHayGanador(casilla_fichaX, arrayBoard);
+			ganador = "GANASTE!!!";
 		}
 		
 		return tresRaya;
+	}
+	
+	// --------------------------------------------------------------------------
+	public void imprime_areaDeJuego(String quienJuega) {
+		
+		for (int i = 0; i < numeroCasillas; i ++) {
+			
+			if (i == 2) {
+				System.out.print("   " + arrayBoard[i].getValor() + "   Turno:" + quienJuega);
+				System.out.println("\n");
+				
+			} else if (i == 5) {
+				System.out.print("   " + arrayBoard[i].getValor());
+				System.out.println("\n");
+				
+			} else {
+				System.out.print("   " + arrayBoard[i].getValor());
+			}
+		}
 	}
 	
 	// --------------------------------------------------------------------------
@@ -126,11 +141,25 @@ public class Tablero {
 			// System.out.print(check1);
 			
 			if (arrayBoard[check1].getValor() == xo && arrayBoard[check2].getValor() == xo && arrayBoard[check3].getValor() == xo) {
-				System.out.println(" 3 en Raya! ");
+				// System.out.println(" 3 en Raya! ");
 				tresRaya = true;
 			}
 		}
 		
 		return tresRaya;
+	}
+	
+	// --------------------------------------------------------------------------
+	public static boolean check_siHayEmpate(CasillaX_O[] arrayBoard) {
+		
+		boolean empate = true;
+		
+		for (CasillaX_O casilla: arrayBoard) {
+			if (!casilla.isOcupada()) {
+				return false;
+			}
+		}
+		
+		return empate;
 	}
 }
