@@ -5,8 +5,8 @@ import java.util.Scanner;
 public class Tablero {
 	
 	public static final char casilla_vacia = 95; // Codigo ASCii   "_"
-	public static final char casilla_fichaX = 120; // Codigo ASCii "X"
-	public static final char casilla_fichaO = 111; // Codigo ASCii "O"
+	public static final char casilla_fichaX = 120; // Codigo ASCii "x"
+	public static final char casilla_fichaO = 111; // Codigo ASCii "o"
 	
 	static int cGanadoras[][] = {
 			{0, 1, 2},
@@ -48,6 +48,7 @@ public class Tablero {
 		boolean tresRaya = false;
 		boolean empate = false;
 		
+		// BUCLE Principal -------------------------------------------
 		do {
 			contador_jugadas ++;
 			String quienJuega = (turno) ? " X (Jugador)" : "  O (CPU)";
@@ -63,6 +64,7 @@ public class Tablero {
 			
 		} while (!tresRaya && !empate);
 		
+		// -----------------------------------------------------------
 		if (!tresRaya) {
 			imprime_areaDeJuego("  EMPATE!");
 			
@@ -79,22 +81,42 @@ public class Tablero {
 		int tirada_cpu;
 		int tirada_jugador;
 		
+		boolean ganaCPU = false;
+		int cpuDefiende = -99; // por defecto No necesita defender
+		
 		if (!turno) {
 			
-			do {
-				rnd = Math.floor(Math.random() * 9);
-				tirada_cpu = (int) rnd;
-				// System.out.print(tirada_cpu);
-				
-			} while (arrayBoard[tirada_cpu].getValor() != casilla_vacia);
+			// Aqui juega la CPU -------------------
+			ganaCPU = cpu_checkSiGana(arrayBoard);
 			
-			arrayBoard[tirada_cpu].setValor(casilla_fichaO);
-			arrayBoard[tirada_cpu].setOcupada(true);
+			if (!ganaCPU) {
+				
+				cpuDefiende = cpu_defiende(arrayBoard);
+				
+				if (cpuDefiende == -99) {
+					
+					do {
+						rnd = Math.floor(Math.random() * 9);
+						tirada_cpu = (int) rnd;
+						// System.out.print(tirada_cpu);
+						
+					} while (arrayBoard[tirada_cpu].getValor() != casilla_vacia);
+					
+				} else {
+					
+					tirada_cpu = cpuDefiende;
+				}
+				
+				arrayBoard[tirada_cpu].setValor(casilla_fichaO);
+				arrayBoard[tirada_cpu].setOcupada(true);
+			}
+			
 			tresRaya = check_siHayGanador(casilla_fichaO, arrayBoard);
 			ganador = "Gana la CPU!";
 			
 		} else {
 			
+			// Aqui juega el JUGADOR ------------
 			do {
 				tirada_jugador = sc.nextInt();
 				
@@ -138,8 +160,6 @@ public class Tablero {
 			int check2 = cGanadoras[i][1];
 			int check3 = cGanadoras[i][2];
 			
-			// System.out.print(check1);
-			
 			if (arrayBoard[check1].getValor() == xo && arrayBoard[check2].getValor() == xo && arrayBoard[check3].getValor() == xo) {
 				// System.out.println(" 3 en Raya! ");
 				tresRaya = true;
@@ -161,5 +181,62 @@ public class Tablero {
 		}
 		
 		return empate;
+	}
+	
+	// --------------------------------------------------------------------------
+	public static boolean cpu_checkSiGana(CasillaX_O[] arrayBoard) {
+		
+		for (int ii = 0; ii < arrayBoard.length; ii ++) {
+			
+			if (arrayBoard[ii].getValor() == casilla_vacia) {
+				
+				char xo = casilla_fichaO;
+				arrayBoard[ii].setValor(casilla_fichaO);
+				
+				for (int i = 0; i < cGanadoras.length; i ++) {
+					int check1 = cGanadoras[i][0];
+					int check2 = cGanadoras[i][1];
+					int check3 = cGanadoras[i][2];
+					
+					if (arrayBoard[check1].getValor() == xo && arrayBoard[check2].getValor() == xo && arrayBoard[check3].getValor() == xo) {
+						// System.out.println(" 3 en Raya! ");
+						arrayBoard[ii].setOcupada(true);
+						return true;
+					}
+				}
+				
+				arrayBoard[ii].setValor(casilla_vacia);
+			}
+		}
+		
+		return false;
+	}
+	
+	// --------------------------------------------------------------------------
+	public static int cpu_defiende(CasillaX_O[] arrayBoard) {
+		
+		for (int ii = 0; ii < arrayBoard.length; ii ++) {
+			
+			if (arrayBoard[ii].getValor() == casilla_vacia) {
+				
+				char xo = casilla_fichaX;
+				arrayBoard[ii].setValor(casilla_fichaX);
+				
+				for (int i = 0; i < cGanadoras.length; i ++) {
+					int check1 = cGanadoras[i][0];
+					int check2 = cGanadoras[i][1];
+					int check3 = cGanadoras[i][2];
+					
+					if (arrayBoard[check1].getValor() == xo && arrayBoard[check2].getValor() == xo && arrayBoard[check3].getValor() == xo) {
+						// System.out.println(" 3 en Raya! ");
+						return ii;
+					}
+				}
+				
+				arrayBoard[ii].setValor(casilla_vacia);
+			}
+		}
+		
+		return -99;
 	}
 }
